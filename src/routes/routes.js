@@ -1,12 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const petController = require('../controllers/petController');
+import { Router } from "express";
+import verifyToken from "../validators/auth";
+import historial from "./fichasRoutes";
+import admin from "./adminRoutes";
+import pacientes from "./pacientesRoutes";
+const router = Router();
 
-// CRUD routes
-router.get('/', petController.getAllPets);
-router.post('/', petController.addPet);
-router.get('/:id', petController.getPetById);
-router.put('/:id', petController.updatePet);
-router.delete('/:id', petController.deletePet);
+router.use("/user", admin);
+router.use("/historial", verifyToken, historial);
+router.use("/pacientes", verifyToken, pacientes);
 
-module.exports = router;
+export default router;
