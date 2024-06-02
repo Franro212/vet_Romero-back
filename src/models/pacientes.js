@@ -55,10 +55,10 @@ const PacienteSchema = Schema({
   fechaAntipulgas: {
     type: Date,
   },
-  historial:{
+  historial: [{
     type: Schema.Types.ObjectId,
-    ref:'Fichas'
-  }
+    ref: 'Fichas'
+  }]
 });
 
 export default model("Paciente", PacienteSchema);
