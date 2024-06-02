@@ -1,6 +1,5 @@
 import express from 'express';
 import { connect } from 'mongoose';
-import { json } from 'body-parser';
 import cors from 'cors';
 require('dotenv').config();
 
