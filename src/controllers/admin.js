@@ -2,7 +2,6 @@ import Admin from "../models/admin";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-// Obtener todos los administradores
 export const getAdmin = async (req, res) => {
   try {
     const admins = await Admin.find();
@@ -26,7 +25,6 @@ export const getAdmin = async (req, res) => {
   }
 };
 
-// Registrar un nuevo administrador
 export const register = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -44,7 +42,7 @@ export const register = async (req, res) => {
       error: false,
     });
   } catch (error) {
-    if (error.code === 11000) { // Error de clave duplicada
+    if (error.code === 11000) {
       return res.status(400).json({
         message: "El email ya está en uso",
         error: true,
@@ -57,7 +55,6 @@ export const register = async (req, res) => {
   }
 };
 
-// Actualizar un administrador
 export const updateUser = async (req, res) => {
   const { id } = req.params;
   const { email, password } = req.body;
@@ -93,7 +90,6 @@ export const updateUser = async (req, res) => {
   }
 };
 
-// Iniciar sesión
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -120,7 +116,7 @@ export const login = async (req, res) => {
         email: user.email,
       },
       process.env.TOKEN_SECRET,
-      { expiresIn: '1h' } // Tiempo de expiración del token
+      { expiresIn: '10h' }
     );
 
     return res.status(200).json({
@@ -136,7 +132,6 @@ export const login = async (req, res) => {
   }
 };
 
-// Eliminar un administrador
 export const deleteUser = async (req, res) => {
   const { id } = req.params;
 

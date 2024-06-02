@@ -1,7 +1,6 @@
 import Ficha from "../models/fichas";
 import Paciente from "../models/pacientes";
 
-// Get all fichas for a specific patient
 export async function getAllFichas(req, res) {
   try {
     const fichas = await Ficha.find({ paciente: req.params.pacienteId });
@@ -11,7 +10,6 @@ export async function getAllFichas(req, res) {
   }
 }
 
-// Add a new ficha for a patient
 export async function addFicha(req, res) {
   const ficha = new Ficha({
     fechaConsulta: req.body.fechaConsulta,
@@ -23,13 +21,12 @@ export async function addFicha(req, res) {
     tipoExamenes: req.body.tipoExamenes,
     evolucion: req.body.evolucion,
     proximaConsulta: req.body.proximaConsulta,
-    paciente: req.params.pacienteId, // Asociar ficha al paciente
+    paciente: req.params.pacienteId,
   });
 
   try {
     const newFicha = await ficha.save();
 
-    // Agregar la ficha al historial del paciente
     const paciente = await Paciente.findById(req.params.pacienteId);
     if (!paciente)
       return res.status(404).json({ message: "Paciente no encontrado" });
@@ -43,7 +40,6 @@ export async function addFicha(req, res) {
   }
 }
 
-// Get a ficha by ID
 export async function getFichaById(req, res) {
   try {
     const ficha = await Ficha.findById(req.params.id);
@@ -54,7 +50,6 @@ export async function getFichaById(req, res) {
   }
 }
 
-// Update a ficha
 export async function updateFicha(req, res) {
   try {
     const ficha = await Ficha.findById(req.params.id);
@@ -82,7 +77,6 @@ export async function updateFicha(req, res) {
   }
 }
 
-// Delete a ficha
 export async function deleteFicha(req, res) {
   try {
     const ficha = await Ficha.findById(req.params.id);
