@@ -1,105 +1,220 @@
 import Paciente from "../models/pacientes";
+import mongoose from "mongoose";
+import moment from "moment";
 
 export async function getAllPatients(req, res) {
   try {
     const patients = await Paciente.find();
-    res.json(patients);
+
+    res
+      .status(200)
+      .json({ message: "Lista de pacientes", data: patients, error: false });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 }
 
 export async function addPatient(req, res) {
+  const {
+    propietario,
+    telefono,
+    socio,
+    numeroSocio,
+    nombreAnimal,
+    especie,
+    fechaNacimiento,
+    sexo,
+    castrado,
+    vacunado,
+    desparasitado,
+    antipulgas,
+    fechaDesparasitado,
+    fechaVacunado,
+    fechaCastrado,
+    fechaAntipulgas,
+    historial = [],
+  } = req.body;
+
   const patient = new Paciente({
-    propietario: req.body.propietario,
-    telefono: req.body.telefono,
-    socio: req.body.socio,
-    numeroSocio: req.body.numeroSocio,
-    nombreAnimal: req.body.nombreAnimal,
-    especie: req.body.especie,
-    fechaNacimiento: req.body.fechaNacimiento,
-    sexo: req.body.sexo,
-    castrado: req.body.castrado,
-    vacunado: req.body.vacunado,
-    desparasitado: req.body.desparasitado,
-    antipulgas: req.body.antipulgas,
-    fechaDesparasitado: req.body.fechaDesparasitado,
-    fechaVacunado: req.body.fechaVacunado,
-    fechaCastrado: req.body.fechaCastrado,
-    fechaAntipulgas: req.body.fechaAntipulgas,
-    historial: req.body.historial || [],
+    propietario,
+    telefono,
+    socio,
+    numeroSocio,
+    nombreAnimal,
+    especie,
+    fechaNacimiento,
+    sexo,
+    castrado,
+    vacunado,
+    desparasitado,
+    antipulgas,
+    fechaDesparasitado,
+    fechaVacunado,
+    fechaCastrado,
+    fechaAntipulgas,
+    historial,
   });
 
   try {
     const newPatient = await patient.save();
-    res.status(201).json(newPatient);
+    res.status(201).json({
+      message: "Paciente creado con éxito",
+      error: false,
+      data: newPatient,
+    });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ message: err.message, error: true });
   }
 }
 
 export async function getPatientById(req, res) {
   try {
     const patient = await Paciente.findById(req.params.id);
-    if (!patient)
-      return res.status(404).json({ message: "Paciente no encontrado" });
-    res.json(patient);
+    if (!patient) {
+      return res.status(404).json({
+        message: "Paciente no encontrado",
+        data: undefined,
+        error: true,
+      });
+    }
+    res
+      .status(200)
+      .json({ message: "Paciente encotrado", error: false, data: patient });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res
+      .status(500)
+      .json({ message: err.message, data: undefined, error: true });
   }
 }
 
 export async function updatePatient(req, res) {
-  try {
-    const patient = await Paciente.findById(req.params.id);
-    if (!patient)
-      return res.status(404).json({ message: "Paciente no encontrado" });
+  const { id } = req.params;
+  const {
+    propietario,
+    telefono,
+    socio,
+    numeroSocio,
+    nombreAnimal,
+    especie,
+    fechaNacimiento,
+    sexo,
+    castrado,
+    vacunado,
+    desparasitado,
+    antipulgas,
+    fechaDesparasitado,
+    fechaVacunado,
+    fechaCastrado,
+    fechaAntipulgas,
+  } = req.body;
 
-    if (req.body.propietario !== undefined)
-      patient.propietario = req.body.propietario;
-    if (req.body.telefono !== undefined) patient.telefono = req.body.telefono;
-    if (req.body.socio !== undefined) patient.socio = req.body.socio;
-    if (req.body.numeroSocio !== undefined)
-      patient.numeroSocio = req.body.numeroSocio;
-    if (req.body.nombreAnimal !== undefined)
-      patient.nombreAnimal = req.body.nombreAnimal;
-    if (req.body.especie !== undefined) patient.especie = req.body.especie;
-    if (req.body.fechaNacimiento !== undefined)
-      patient.fechaNacimiento = req.body.fechaNacimiento;
-    if (req.body.sexo !== undefined) patient.sexo = req.body.sexo;
-    if (req.body.castrado !== undefined) patient.castrado = req.body.castrado;
-    if (req.body.vacunado !== undefined) patient.vacunado = req.body.vacunado;
-    if (req.body.desparasitado !== undefined)
-      patient.desparasitado = req.body.desparasitado;
-    if (req.body.antipulgas !== undefined)
-      patient.antipulgas = req.body.antipulgas;
-    if (req.body.fechaDesparasitado !== undefined)
-      patient.fechaDesparasitado = req.body.fechaDesparasitado;
-    if (req.body.fechaVacunado !== undefined)
-      patient.fechaVacunado = req.body.fechaVacunado;
-    if (req.body.fechaCastrado !== undefined)
-      patient.fechaCastrado = req.body.fechaCastrado;
-    if (req.body.fechaAntipulgas !== undefined)
-      patient.fechaAntipulgas = req.body.fechaAntipulgas;
-    if (req.body.historial !== undefined)
-      patient.historial = req.body.historial;
+  try {
+    const patient = await Paciente.findById(id);
+
+    if (!patient) {
+      return res.status(404).json({
+        message: "Paciente no encontrado",
+        error: true,
+      });
+    }
+
+    const parsedFechaNacimiento = fechaNacimiento
+      ? moment(fechaNacimiento, moment.ISO_8601).toDate()
+      : patient.fechaNacimiento;
+    const parsedFechaDesparasitado = fechaDesparasitado
+      ? moment(fechaDesparasitado, moment.ISO_8601).toDate()
+      : patient.fechaDesparasitado;
+    const parsedFechaVacunado = fechaVacunado
+      ? moment(fechaVacunado, moment.ISO_8601).toDate()
+      : patient.fechaVacunado;
+    const parsedFechaCastrado = fechaCastrado
+      ? moment(fechaCastrado, moment.ISO_8601).toDate()
+      : patient.fechaCastrado;
+    const parsedFechaAntipulgas = fechaAntipulgas
+      ? moment(fechaAntipulgas, moment.ISO_8601).toDate()
+      : patient.fechaAntipulgas;
+
+    const updatedFields = {
+      propietario: propietario || patient.propietario,
+      telefono: telefono || patient.telefono,
+      socio: socio || patient.socio,
+      numeroSocio: numeroSocio || patient.numeroSocio,
+      nombreAnimal: nombreAnimal || patient.nombreAnimal,
+      especie: especie || patient.especie,
+      fechaNacimiento: parsedFechaNacimiento,
+      sexo: sexo || patient.sexo,
+      castrado: castrado || patient.castrado,
+      vacunado: vacunado || patient.vacunado,
+      desparasitado: desparasitado || patient.desparasitado,
+      antipulgas: antipulgas || patient.antipulgas,
+      fechaDesparasitado: parsedFechaDesparasitado,
+      fechaVacunado: parsedFechaVacunado,
+      fechaCastrado: parsedFechaCastrado,
+      fechaAntipulgas: parsedFechaAntipulgas,
+    };
+
+    const isModified = Object.keys(updatedFields).some(
+      (key) =>
+        JSON.stringify(patient[key]) !== JSON.stringify(updatedFields[key]),
+    );
+    
+
+    if (!isModified) {
+      return res.status(200).json({
+        message: "No se realizaron cambios, los datos son iguales",
+        data: patient,
+        error: false,
+      });
+    }
+
+    Object.assign(patient, updatedFields);
 
     const updatedPatient = await patient.save();
-    res.json(updatedPatient);
+    return res.status(200).json({
+      message: "Paciente actualizado con éxito",
+      data: updatedPatient,
+      error: false,
+    });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error("Error en el proceso de actualización:", err.message);
+    return res.status(500).json({
+      message: "Hubo un error interno en el servidor",
+      error: true,
+    });
   }
 }
 
 export async function deletePatient(req, res) {
-  try {
-    const patient = await Paciente.findById(req.params.id);
-    if (!patient)
-      return res.status(404).json({ message: "Paciente no encontrado" });
+  const { id } = req.params;
 
-    await patient.remove();
-    res.json({ message: "Paciente eliminado éxito" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({
+      message: "ID Inválido",
+      error: true,
+    });
+  }
+
+  try {
+    const deletedPatient = await Paciente.findByIdAndDelete(id);
+
+    if (!deletedPatient) {
+      return res.status(404).json({
+        message: "Paciente no encontrado",
+        error: true,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Paciente eliminado correctamente",
+      error: false,
+      data: deletedPatient,
+    });
+  } catch (error) {
+    console.error("Error al eliminar el Paciente:", error);
+    return res.status(500).json({
+      message: "Ocurrió un error al eliminar el paciente",
+      error: true,
+      error: error.message,
+    });
   }
 }

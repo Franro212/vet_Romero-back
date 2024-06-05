@@ -1,12 +1,31 @@
+import mongoose from "mongoose";
 import Ficha from "../models/fichas";
 import Paciente from "../models/pacientes";
+import moment from "moment";
 
 export async function getAllFichas(req, res) {
   try {
-    const fichas = await Ficha.find({ paciente: req.params.pacienteId });
-    res.json(fichas);
+    const paciente = await Paciente.findById(req.params.pacienteId).populate(
+      "historial",
+    );
+
+    if (!paciente) {
+      return res.status(404).json({
+        message: "Paciente no encontrado",
+        error: true,
+      });
+    }
+
+    res.status(200).json({
+      message: "Lista de fichas",
+      data: paciente.historial,
+      error: false,
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Error en la obtención de las fichas:", err.message);
+    res
+      .status(500)
+      .json({ message: "Hubo un error interno en el servidor", error: true });
   }
 }
 
@@ -29,12 +48,16 @@ export async function addFicha(req, res) {
 
     const paciente = await Paciente.findById(req.params.pacienteId);
     if (!paciente)
-      return res.status(404).json({ message: "Paciente no encontrado" });
+      return res.status(404).json({
+        message: "Paciente no encontrado",
+        data: undefined,
+        error: true,
+      });
 
     paciente.historial.push(newFicha._id);
     await paciente.save();
 
-    res.status(201).json(newFicha);
+    res.status(201).json({ message: "Ficha creada con exito", data: newFicha });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -43,48 +66,145 @@ export async function addFicha(req, res) {
 export async function getFichaById(req, res) {
   try {
     const ficha = await Ficha.findById(req.params.id);
-    if (!ficha) return res.status(404).json({ message: "Ficha no encontrada" });
-    res.json(ficha);
+    if (!ficha) {
+      return res
+        .status(404)
+        .json({ message: "Ficha no encontrada", data: undefined, error: true });
+    }
+    res
+      .status(200)
+      .json({ data: ficha, message: "Ficha encotrada", error: false });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 }
 
 export async function updateFicha(req, res) {
-  try {
-    const ficha = await Ficha.findById(req.params.id);
-    if (!ficha) return res.status(404).json({ message: "Ficha no encontrada" });
+  const { id } = req.params;
+  const {
+    fechaConsulta,
+    algunMedicamento,
+    cualesMedicamentos,
+    motivoConsulta,
+    sistemaComprometido,
+    examenesColaterales,
+    tipoExamenes,
+    evolucion,
+    proximaConsulta,
+  } = req.body;
 
-    if (req.body.fechaConsulta) ficha.fechaConsulta = req.body.fechaConsulta;
-    if (req.body.algunMedicamento !== undefined)
-      ficha.algunMedicamento = req.body.algunMedicamento;
-    if (req.body.cualesMedicamentos)
-      ficha.cualesMedicamentos = req.body.cualesMedicamentos;
-    if (req.body.motivoConsulta) ficha.motivoConsulta = req.body.motivoConsulta;
-    if (req.body.sistemaComprometido)
-      ficha.sistemaComprometido = req.body.sistemaComprometido;
-    if (req.body.examenesColaterales !== undefined)
-      ficha.examenesColaterales = req.body.examenesColaterales;
-    if (req.body.tipoExamenes) ficha.tipoExamenes = req.body.tipoExamenes;
-    if (req.body.evolucion) ficha.evolucion = req.body.evolucion;
-    if (req.body.proximaConsulta)
-      ficha.proximaConsulta = req.body.proximaConsulta;
+  try {
+    const ficha = await Ficha.findById(id);
+
+    if (!ficha) {
+      return res.status(404).json({
+        message: "Ficha no encontrada",
+        error: true,
+      });
+    }
+
+    const parsedFechaConsulta = fechaConsulta
+      ? moment(fechaConsulta, "DD/MM/YYYY").toDate()
+      : ficha.fechaConsulta;
+    const parsedFechaProximaConsulta = proximaConsulta
+      ? moment(proximaConsulta, "DD/MM/YYYY").toDate()
+      : ficha.proximaConsulta;
+
+    const updatedFields = {
+      algunMedicamento:
+        algunMedicamento !== undefined
+          ? algunMedicamento
+          : ficha.algunMedicamento,
+      cualesMedicamentos: cualesMedicamentos || ficha.cualesMedicamentos,
+      motivoConsulta: motivoConsulta || ficha.motivoConsulta,
+      sistemaComprometido: sistemaComprometido || ficha.sistemaComprometido,
+      examenesColaterales:
+        examenesColaterales !== undefined
+          ? examenesColaterales
+          : ficha.examenesColaterales,
+      tipoExamenes: tipoExamenes || ficha.tipoExamenes,
+      evolucion: evolucion || ficha.evolucion,
+      fechaConsulta: parsedFechaConsulta,
+      proximaConsulta: parsedFechaProximaConsulta,
+    };
+    console.log(
+      parsedFechaConsulta,
+      parsedFechaProximaConsulta,
+      algunMedicamento,
+      cualesMedicamentos,
+      motivoConsulta,
+      sistemaComprometido,
+      examenesColaterales,
+      tipoExamenes,
+      evolucion,
+    );
+
+    const isModified = Object.keys(updatedFields).some((key) => {
+      const originalValue = ficha[key];
+      const newValue = updatedFields[key];
+
+      if (originalValue instanceof Date && newValue instanceof Date) {
+        return originalValue.getTime() !== newValue.getTime();
+      }
+      return originalValue !== newValue;
+    });
+
+    if (!isModified) {
+      return res.status(200).json({
+        message: "No se realizaron cambios, los datos son iguales",
+        data: ficha,
+        error: false,
+      });
+    }
+
+    Object.assign(ficha, updatedFields);
 
     const updatedFicha = await ficha.save();
-    res.json(updatedFicha);
+    return res.status(200).json({
+      message: "Ficha actualizada con éxito",
+      data: updatedFicha,
+      error: false,
+    });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error("Error en el proceso de actualización:", err.message);
+    return res.status(500).json({
+      message: "Hubo un error interno en el servidor",
+      error: true,
+    });
   }
 }
 
 export async function deleteFicha(req, res) {
-  try {
-    const ficha = await Ficha.findById(req.params.id);
-    if (!ficha) return res.status(404).json({ message: "Ficha no encontrada" });
+  const { id } = req.params;
 
-    await ficha.remove();
-    res.json({ message: "Ficha eliminada con éxito" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({
+      message: "ID Inválido",
+      error: true,
+    });
+  }
+
+  try {
+    const deleteFicha = await Ficha.findByIdAndDelete(id);
+
+    if (!deleteFicha) {
+      return res.status(404).json({
+        message: "Ficha no encontrado",
+        error: true,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Ficha eliminada correctamente",
+      error: false,
+      data: deleteFicha,
+    });
+  } catch (error) {
+    console.error("Error al eliminar la ficha:", error);
+    return res.status(500).json({
+      message: "Ocurrió un error al eliminar la ficha",
+      error: true,
+      error: error.message,
+    });
   }
 }

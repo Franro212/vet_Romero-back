@@ -60,5 +60,13 @@ const PacienteSchema = Schema({
     ref: 'Fichas'
   }]
 });
+PacienteSchema.pre('remove', async function(next) {
+  try {
+    await Ficha.deleteMany({ _id: { $in: this.historial } });
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default model("Paciente", PacienteSchema);

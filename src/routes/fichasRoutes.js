@@ -2,14 +2,14 @@ import express from 'express';
 const router = express.Router();
 import { getAllFichas, addFicha, getFichaById, updateFicha, deleteFicha } from '../controllers/fichasController';
 
-router.get('/pacientes/:pacienteId/fichas', getAllFichas);
+router.get('/:pacienteId', getAllFichas);
 
-router.post('/pacientes/:pacienteId/fichas', addFicha);
+router.post('/:pacienteId', addFicha);
 
-router.get('/fichas/:id', getFichaById);
+router.get('/:id', getFichaById);
 
-router.put('/fichas/:id', updateFicha);
+router.put('/:id', updateFicha);
 
-router.delete('/fichas/:id', deleteFicha);
+router.delete('/:id', deleteFicha);
 
 export default router;
