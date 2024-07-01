@@ -127,18 +127,6 @@ export async function updateFicha(req, res) {
       fechaConsulta: parsedFechaConsulta,
       proximaConsulta: parsedFechaProximaConsulta,
     };
-    console.log(
-      parsedFechaConsulta,
-      parsedFechaProximaConsulta,
-      algunMedicamento,
-      cualesMedicamentos,
-      motivoConsulta,
-      sistemaComprometido,
-      examenesColaterales,
-      tipoExamenes,
-      evolucion,
-    );
-
     const isModified = Object.keys(updatedFields).some((key) => {
       const originalValue = ficha[key];
       const newValue = updatedFields[key];
