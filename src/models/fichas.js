@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const FichasSchema = Schema({
+const FichasSchema = new Schema({
   fechaConsulta: {
     type: Date,
     required: true,
@@ -14,7 +14,7 @@ const FichasSchema = Schema({
   },
   motivoConsulta: {
     type: String,
-    required:true,
+    required: true,
   },
   sistemaComprometido: {
     type: String,
@@ -29,9 +29,9 @@ const FichasSchema = Schema({
   evolucion: {
     type: String,
   },
- proximaConsulta: {
+  proximaConsulta: {
     type: Date,
-  }
+  },
 });
 
 export default model("Fichas", FichasSchema);
