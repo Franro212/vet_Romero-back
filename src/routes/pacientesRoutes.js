@@ -1,10 +1,10 @@
 import express from 'express';
 const router = express.Router();
-import { getAllPatients, addPatient, getPatientById, updatePatient, deletePatient } from '../controllers/pacientesController';
+import { getPatients, createPatient, getPatientById, updatePatient, deletePatient } from '../controllers/pacientesController';
 
-router.get('/', getAllPatients);
+router.get('/', getPatients);
 
-router.post('/', addPatient);
+router.post('/', createPatient);
 
 router.get('/:id', getPatientById);
 

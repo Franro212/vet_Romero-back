@@ -1,20 +1,6 @@
-import  {model, Schema } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
-const PacienteSchema = Schema({
-  propietario: {
-    type: String,
-    required: true,
-  },
-  telefono: {
-    type: Number,
-    required: true,
-  },
-  socio: {
-    type: Boolean,
-  },
-  numeroSocio: {
-    type: Number,
-  },
+const PacienteSchema = new Schema({
   nombreAnimal: {
     type: String,
     required: true,
@@ -58,8 +44,14 @@ const PacienteSchema = Schema({
   historial: [{
     type: Schema.Types.ObjectId,
     ref: 'Fichas'
-  }]
+  }],
+  propietario: {
+    type: Schema.Types.ObjectId,
+    ref: 'Propietarios',
+    required: true,
+  },
 });
+
 PacienteSchema.pre('remove', async function(next) {
   try {
     await Ficha.deleteMany({ _id: { $in: this.historial } });
@@ -69,4 +61,4 @@ PacienteSchema.pre('remove', async function(next) {
   }
 });
 
-export default model("Paciente", PacienteSchema);
+export default model("Pacientes", PacienteSchema);
